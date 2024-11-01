@@ -1,3 +1,6 @@
+# This file belongs to a third party and is not part of this project.
+# The following copyright notice is only valid for this single file.
+
 # MIT License
 # 
 # Copyright (c) 2024 ai.robots.txt
