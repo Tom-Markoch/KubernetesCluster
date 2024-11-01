@@ -9,6 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiniServer", "MiniServer\Mi
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1A7162FE-50E3-4097-88D0-40CD46D378F8}"
 	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
 		robots.txt = robots.txt
 	EndProjectSection
 EndProject
