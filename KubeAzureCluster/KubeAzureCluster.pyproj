@@ -41,7 +41,6 @@
     <Content Include="Configuration\kubeapp_a_service.yaml" />
     <Content Include="Configuration\kubeapp_ingress.yaml" />
     <Content Include="kube_credentials_example.json" />
-    <Content Include="README.md" />
     <Content Include="KubeInstallationScripts\initialize_kube_node.sh" />
     <Content Include="KubeInstallationScripts\install_kube.sh" />
     <Content Include="kube_settings.json" />
