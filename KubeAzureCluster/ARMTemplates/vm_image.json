@@ -1,0 +1,254 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "String",
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "localIPAddress": {
+            "type": "String"
+        },
+        "publicIPAddressName": {
+            "type": "String"
+        },
+        "virtualNetworkName": {
+            "type": "String"
+        },
+        "virtualNetworkAddressPrefix": {
+            "type": "String"
+        },
+        "subnetName": {
+            "type": "String"
+        },
+        "subnetAddressPrefix": {
+            "type": "String"
+        },
+        "networkSecurityGroupName": {
+            "type": "String"
+        },
+        "networkInterfaceName": {
+            "type": "String"
+        },
+        "vmName": {
+            "type": "String"
+        },
+        "vmComputerName": {
+            "type": "String"
+        },
+        "adminUsername": {
+            "type": "String"
+        },
+        "adminPassword": {
+            "type": "String"
+        },
+        "vmSize": {
+            "type": "String"
+        },
+        "vmStorageAccountType": {
+            "type": "String"
+        }
+    },
+    "variables": {
+        "virtualNetworkId": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+        "publicIPAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressName'))]",
+        "subnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]",
+        "networkSecurityGroupId": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]",
+        "nicId": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2024-01-01",
+            "name": "[parameters('networkSecurityGroupName')]",
+            "dependsOn": [
+                "[variables('publicIPAddressId')]"
+            ],
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "HTTP",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "[parameters('localIPAddress')]",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 200,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "HTTPS",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "[parameters('localIPAddress')]",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 210,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "SSH",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "[parameters('localIPAddress')]",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 220,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2024-01-01",
+            "name": "[parameters('publicIPAddressName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+            },
+            "properties": {
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static",
+                "idleTimeoutInMinutes": 15,
+                "ipTags": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2024-01-01",
+            "name": "[parameters('virtualNetworkName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('virtualNetworkAddressPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('subnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnetAddressPrefix')]",
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('networkInterfaceName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[variables('networkSecurityGroupId')]",
+                "[variables('virtualNetworkId')]",
+                "[variables('publicIPAddressId')]"
+            ],
+            "properties": {
+                "primary": true,
+                "enableAcceleratedNetworking": false,
+                "disableTcpStateTracking": false,
+                "networkSecurityGroup": {
+                    "id": "[variables('networkSecurityGroupId')]"
+                },
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableIPForwarding": true,
+                "ipConfigurations": [
+                    {
+                        "name": "ipConfig",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "primary": true,
+                            "publicIPAddress": {
+                                "id": "[variables('publicIPAddressId')]"
+                            },
+                            "subnet": {
+                                "id": "[variables('subnetId')]"
+                            },
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2024-03-01",
+            "name": "[parameters('vmName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[variables('nicId')]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('vmComputerName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": false,
+                        "provisionVMAgent": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('vmStorageAccountType')]"
+                        },
+                        "diskSizeGB": 30
+                    },
+                    "imageReference": {
+                        "publisher": "canonical",
+                        "offer": "ubuntu-24_04-lts",
+                        "sku": "server",
+                        "version": "latest"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[variables('nicId')]"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

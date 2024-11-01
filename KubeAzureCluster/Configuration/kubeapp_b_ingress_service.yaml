@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubeapp-b-ingress-deployment
+spec:
+  selector:
+    matchLabels:
+      app: kubeapp-b-ingress
+  template:
+    metadata:
+      labels:
+        app: kubeapp-b-ingress
+    spec:
+      containers:
+      - name: kubeapp-b-ingress
+        image: docker.io/tmarkoc/miniserver
+        ports:
+        - containerPort: 8080
+        imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubeapp-b-ingress-service
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: kubeapp-b-ingress
+  type: ClusterIP
