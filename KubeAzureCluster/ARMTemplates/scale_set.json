@@ -1,0 +1,163 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworkName": {
+            "type": "String"
+        },
+        "subnetName": {
+            "type": "String"
+        },
+        "networkSecurityGroupName": {
+            "type": "String"
+        },
+        "useLoadBalancer": {
+            "type": "Bool"
+        },
+        "loadBalancerName": {
+            "type": "String"
+        },
+        "backendPoolName": {
+            "type": "String"
+        },
+        "networkInterfaceName": {
+            "type": "String",
+            "defaultValue": "nic"
+        },
+        "vmssName": {
+            "type": "String"
+        },
+        "vmComputerNamePrefix": {
+            "type": "String"
+        },
+        "adminUsername": {
+            "type": "String"
+        },
+        "adminPassword": {
+            "type": "String"
+        },
+        "vmSize": {
+            "type": "String"
+        },
+        "vmStorageAccountType": {
+            "type": "String"
+        },
+        "vmSpot": {
+            "type": "Bool"
+        },
+        "vmMaxPrice": {
+            "type": "String"
+        },
+        "vmImageResourceGroupName": {
+            "type": "String"
+        },
+        "vmImageName": {
+            "type": "String"
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "vmImageId": "[resourceId(parameters('vmImageResourceGroupName'), 'Microsoft.Compute/images', parameters('vmImageName'))]",
+        "subnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]",
+        "backendAddressPoolId": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancerName'), parameters('backendPoolName'))]",
+        "networkSecurityGroupId": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "apiVersion": "2024-03-01",
+            "name": "[parameters('vmssName')]",
+            "location": "[variables('location')]",
+            "sku": {
+                "name": "[parameters('vmSize')]",
+                "tier": "Standard",
+                "capacity": 1
+            },
+            "properties": {
+                "singlePlacementGroup": false,
+                "orchestrationMode": "Uniform",
+                "upgradePolicy": {
+                    "mode": "Manual"
+                },
+                "scaleInPolicy": {
+                    "rules": [
+                        "Default"
+                    ],
+                    "forceDeletion": false
+                },
+                "virtualMachineProfile": {
+                    "osProfile": {
+                        "computerNamePrefix": "[parameters('vmComputerNamePrefix')]",
+                        "adminUsername": "[parameters('adminUsername')]",
+                        "adminPassword": "[parameters('adminPassword')]",
+                        "linuxConfiguration": {
+                            "disablePasswordAuthentication": false,
+                            "provisionVMAgent": true
+                        },
+                        "secrets": [],
+                        "allowExtensionOperations": true
+                    },
+                    "storageProfile": {
+                        "osDisk": {
+                            "osType": "Linux",
+                            "createOption": "FromImage",
+                            "caching": "ReadWrite",
+                            "managedDisk": {
+                                "storageAccountType": "[parameters('vmStorageAccountType')]"
+                            },
+                            "diskSizeGB": 30
+                        },
+                        "imageReference": {
+                            "id": "[variables('vmImageId')]"
+                        },
+                        "diskControllerType": "SCSI"
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "[parameters('networkInterfaceName')]",
+                                "properties": {
+                                    "primary": true,
+                                    "enableAcceleratedNetworking": false,
+                                    "disableTcpStateTracking": false,
+                                    "networkSecurityGroup": {
+                                        "id": "[variables('networkSecurityGroupId')]"
+                                    },
+                                    "dnsSettings": {
+                                        "dnsServers": []
+                                    },
+                                    "enableIPForwarding": true,
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "[concat(parameters('networkInterfaceName'), '-IpConfig')]",
+                                            "properties": {
+                                                "primary": true,
+                                                "subnet": {
+                                                    "id": "[variables('subnetId')]"
+                                                },
+                                                "privateIPAddressVersion": "IPv4",
+                                                "loadBalancerBackendAddressPools": "[if(parameters('useLoadBalancer'), json(format('[{{\"id\": \"{0}\"}}]', variables('backendAddressPoolId'))), json('null'))]"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "extensionProfile": {
+                        "extensions": []
+                    },
+                    "priority": "[if(parameters('vmSpot'), 'Spot', json('null'))]",
+                    "evictionPolicy": "[if(parameters('vmSpot'), 'Deallocate', json('null'))]",
+                    "billingProfile": {
+                        "maxPrice": "[if(parameters('vmSpot'), parameters('vmMaxPrice'), json('null'))]"
+                    }
+                },
+                "overprovision": false,
+                "doNotRunExtensionsOnOverprovisionedVMs": false,
+                "platformFaultDomainCount": 1,
+                "spotRestorePolicy": "[if(parameters('vmSpot'), json('{ \"enabled\": true, \"restoreTimeout\": \"P1D\" }'), json('null'))]"
+            }
+        }
+    ]
+}

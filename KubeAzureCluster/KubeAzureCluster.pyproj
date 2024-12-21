@@ -1,0 +1,65 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>61196d57-ecbd-4ce5-9255-aff5876088eb</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>metal_cluster.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <Name>KubeAzureCluster</Name>
+    <RootNamespace>KubeAzureCluster</RootNamespace>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="create_azure_vm_image.py" />
+    <Compile Include="azure_cluster.py" />
+    <Compile Include="install_utilities.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="metal_cluster.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ARMTemplates\cluster.json" />
+    <Content Include="Configuration\dashboard_service_account.yaml" />
+    <Content Include="Configuration\ingress_nginx_controller.yaml" />
+    <Content Include="Configuration\ingress_nginx_controller_node_port.yaml" />
+    <Content Include="Configuration\kubeapp_b_ingress_service.yaml" />
+    <Content Include="Configuration\kubeapp_b_service.yaml" />
+    <Content Include="Configuration\kubeapp_a_ingress_service.yaml" />
+    <Content Include="Configuration\kubeapp_a_service.yaml" />
+    <Content Include="Configuration\kubeapp_ingress.yaml" />
+    <Content Include="kube_credentials_example.json" />
+    <Content Include="KubeInstallationScripts\initialize_kube_node.sh" />
+    <Content Include="KubeInstallationScripts\install_kube.sh" />
+    <Content Include="kube_settings.json" />
+    <Content Include="requirements.txt" />
+    <Content Include="ARMTemplates\scale_set.json" />
+    <Content Include="ARMTemplates\vm_image.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Configuration\" />
+    <Folder Include="ARMTemplates\" />
+    <Folder Include="KubeInstallationScripts\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+  <!-- Uncomment the CoreCompile target to enable the Build command in
+       Visual Studio and specify your pre- and post-build commands in
+       the BeforeBuild and AfterBuild targets below. -->
+  <!--<Target Name="CoreCompile" />-->
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+</Project>

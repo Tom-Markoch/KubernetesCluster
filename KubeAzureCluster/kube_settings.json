@@ -1,0 +1,137 @@
+{
+    "CredentialsPath": ".\\..\\..\\_CREDENTIALS\\KubeAppCredentials\\kube_credentials.json",
+    "MetalClusterConfig": {
+        "NetworkAddressPrefix": "172.25.32.0/20",
+        "UseLoadBalancer": false,
+        "ControlPlaneEndpoint": "172.25.32.135",
+        "ControlPlaneEndpointVMIndex": 0,
+        "VirtualMachines": [
+            {
+                "IPAddress": "172.25.32.135",
+                "IsControlPlane": true,
+                "AllowWorkloads": true,
+                "Running": true
+            },
+            {
+                "IPAddress": "172.25.39.187",
+                "IsControlPlane": true,
+                "AllowWorkloads": true,
+                "Running": true
+            }
+        ]
+    },
+    "CloudLocation": "westus2",
+    "VMImageStorage": {
+        "ResourceGroupName": "vm-image-storage-resource-group"
+    },
+    "VMImageCreation": {
+        "ImageName": "vm-image-v1.0.2",
+        "DeploymentName": "vm-image-creation-deployment",
+        "ResourceGroupName": "vm-image-resource-group-1",
+        "PublicIPAddressName": "ip-address",
+        "VirtualNetworkName": "vnet",
+        "VirtualNetworkAddressPrefix": "10.16.0.0/16",
+        "SubnetName": "subnet",
+        "SubnetAddressPrefix": "10.16.0.0/20",
+        "NetworkSecurityGroupName": "nsg",
+        "NetworkInterfaceName": "nic",
+        "VMName": "node",
+        "ComputerName": "node",
+        "Size": "Standard_B1ms",
+        "StorageAccountType": "Standard_LRS"
+    },
+    "ClusterConfig": {
+        "ResourceGroupName": "cluster-resource-group-4",
+        "DeploymentName": "cluster-deployment",
+        "PublicIPAddressName": "cluster-ip-address",
+        "VirtualNetworkName": "cluster-vnet",
+        "VirtualNetworkAddressPrefix": "10.16.0.0/16",
+        "SubnetName": "cluster-subnet",
+        "SubnetAddressPrefix": "10.16.0.0/20",
+        "NetworkSecurityGroupName": "cluster-nsg",
+        "UseLoadBalancer": true,
+        "LoadBalancer": {
+            "Name": "cluster-load-balancer",
+            "BackendPoolName": "cluster-backendpool"
+        },
+        "PublicVM": {
+            "NicName": "public-vm-nic",
+            "Name": "public-vm",
+            "AllowWorkloads": true,
+            "ComputerName": "public-vm",
+            "Size": "Standard_B1ms",
+            "ImageName": "vm-image-v1.0.2",
+            "StorageAccountType": "Standard_LRS"
+        },
+        "ScaleSets": {
+            "control-plane": {
+                "IsControlPlane": true,
+                "AllowWorkloads": true,
+                "ComputerNamePrefix": "cw-",
+                "Spot": false,
+                "Size": "Standard_B1ms",
+                "ImageName": "vm-image-v1.0.2",
+                "StorageAccountType": "Standard_LRS"
+            },
+            "workload": {
+                "IsControlPlane": false,
+                "ComputerNamePrefix": "w-",
+                "Spot": true,
+                "MaxPrice": "0.01",
+                "Size": "Standard_DS1_v2",
+                "ImageName": "vm-image-v1.0.2",
+                "StorageAccountType": "Standard_LRS"
+            }
+        }
+    },
+    "Configurations": {
+        "InstallKubernetes": {
+            "Files": [
+                "Configuration/ingress_nginx_controller_node_port.yaml",
+                "Configuration/kubeapp_ingress.yaml",
+                "Configuration/kubeapp_a_ingress_service.yaml",
+                "Configuration/kubeapp_b_ingress_service.yaml"
+            ],
+            "TestPodNames": [
+                "kubeapp-a-ingress-deployment",
+                "kubeapp-b-ingress-deployment",
+                "ingress-nginx-controller"
+            ],
+            "TestEndpoints": [
+                {
+                    "PortAndPath": "30080/",
+                    "StatusCode": 200
+                },
+                {
+                    "PortAndPath": "30080/bbb",
+                    "StatusCode": 200
+                }
+            ]
+        },
+        "Services_A_and_B": {
+            "Files": [
+                "Configuration/kubeapp_a_service.yaml",
+                "Configuration/kubeapp_b_service.yaml"
+            ],
+            "TestPodNames": [
+                "kubeapp-a-deployment",
+                "kubeapp-b-deployment"
+            ],
+            "TestEndpoints": [
+                {
+                    "PortAndPath": 30100,
+                    "StatusCode": 200
+                },
+                {
+                    "PortAndPath": 30110,
+                    "StatusCode": 200
+                }
+            ]
+        },
+        "Dashboard": {
+            "Files": [
+                "Configuration/dashboard_service_account.yaml"
+            ]
+        }
+    }
+}
