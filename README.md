@@ -1,4 +1,4 @@
-![t](https://www.indiemapspot.com/telemetry/t.png)
+
   Copyright (C) 2024 Tomislav Markoc, unpublished work. All rights reserved.
   Title and version: KubernetesCluster, version 2.0
 
